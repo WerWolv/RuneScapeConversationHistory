@@ -78,12 +78,13 @@ function Choices:Select(menu, index)
     local player = PlayerList and PlayerList.Self()
     local name = text.Plain(player and player.displayName)
 
-    self.history:Observe({ speaker = name ~= "" and name or "You", text = selected.text })
+    local _, entry = self.history:Observe({ speaker = name ~= "" and name or "You", text = selected.text })
+    self.pending = entry and { id = entry.id, menu = menu } or nil
 end
 
 function Choices:Update(prefix)
     if prefix == nil then
-        self:Stop()
+        self:Stop(true)
 
         return
     end
@@ -92,7 +93,7 @@ function Choices:Update(prefix)
     local root = get(prefix, "OPTIONS")
 
     if not visible(window) or not visible(root) then
-        self:Stop()
+        self:Stop(true)
 
         return
     end
@@ -115,10 +116,30 @@ function Choices:Update(prefix)
         return
     end
 
-    self:Stop()
+    self:Stop(true)
 
     local menu = { prefix = prefix, root = root, options = options }
     self.menu = menu
+
+    -- Keep the selected answer hidden while its menu is closing. Availability
+    -- changes alone don't indicate that the next choice page has arrived.
+    local pending = self.pending
+
+    if pending ~= nil then
+        local old = pending.menu
+
+        if old.root ~= root or old.prefix ~= prefix then
+            self.pending = nil
+        else
+            for index, entry in ipairs(options) do
+                if entry.text ~= "" and entry.text ~= old.options[index].text then
+                    self.pending = nil
+
+                    break
+                end
+            end
+        end
+    end
 
     for index, entry in ipairs(options) do
         if entry.available then
@@ -151,9 +172,13 @@ function Choices:OnKeyDown(event)
     end
 end
 
-function Choices:Stop()
+function Choices:Stop(keepPending)
     local menu = self.menu
     self.menu = nil
+
+    if not keepPending then
+        self.pending = nil
+    end
 
     if menu == nil then
         return

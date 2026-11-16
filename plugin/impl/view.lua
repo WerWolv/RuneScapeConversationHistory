@@ -100,7 +100,7 @@ function View:UpdateLauncherSprite()
 end
 
 function View:AttachLauncher(host)
-    local icon = prettyui.NewComponent(ui.Sprite, host)
+    local icon = prettyui.NewComponent(ui.Sprite, host, { categoryID = "auto" })
     self.launcher = icon
     icon:SetSize(iconSize, iconSize)
     icon.enabled = true
@@ -243,7 +243,8 @@ function View:UpdateHistory(host)
         self.scroll:Refresh()
     end
 
-    self.current:Update(self.dialogue.active and not self.history.idle and self.history.conversation or nil)
+    self.current:Update(self.dialogue.active and not self.history.idle and self.history.conversation or nil,
+        self.dialogue.visibleEntry)
     self.expansion:Show()
     self.scroll.root.hidden = false
     self.launcher:MoveToFront()
@@ -269,7 +270,7 @@ function View:UpdateRibbon()
     end
 
     if visible then
-        self.recent:Update()
+        self.recent:Update(nil, self.dialogue.visibleEntry)
     end
 end
 
@@ -304,7 +305,7 @@ function View:MountRibbon(parent)
     end
     self.ribbon.onLayout = keepScrollbarVisible
     self.recent = Transcript:New(self.history, self.ribbon)
-    self.recent:Update()
+    self.recent:Update(nil, self.dialogue.visibleEntry)
     self.ribbon.root.hidden = false
 end
 

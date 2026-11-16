@@ -201,12 +201,24 @@ function Dialogue:Capture(logicTick)
             self.history:BeginConversation()
         end
 
-        self.history:Observe(page)
-    elseif logicTick then
-        self.absentTicks = self.absentTicks + 1
+        local _, entry = self.history:Observe(page)
 
-        if self.absentTicks >= idleTicks then
-            self.history:EndConversation()
+        if entry ~= nil then
+            self.choices.pending = nil
+        end
+
+        self.visibleEntry = entry and entry.id or self.choices.pending and self.choices.pending.id
+    else
+        self.visibleEntry = self.choices.pending and self.choices.pending.id
+
+        if logicTick then
+            self.absentTicks = self.absentTicks + 1
+
+            if self.absentTicks >= idleTicks then
+                self.choices.pending = nil
+                self.visibleEntry = nil
+                self.history:EndConversation()
+            end
         end
     end
 
@@ -268,6 +280,7 @@ function Dialogue:Stop()
     self.active = false
     self.absentTicks = 0
     self.host, self.title, self.border, self.close, self.restart = nil, nil, nil, nil, nil
+    self.visibleEntry = nil
     self.history:EndConversation()
 end
 

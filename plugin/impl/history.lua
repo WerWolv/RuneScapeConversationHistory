@@ -34,17 +34,18 @@ function History:Observe(snapshot)
     local key = speaker .. "\0" .. body
 
     if key == self.lastKey then
-        return false
+        return false, self.entries[#self.entries]
     end
 
     self:BeginConversation()
     self.lastKey = key
-    self.entries[#self.entries + 1] = {
+    local entry = {
         id = self.nextID,
         speaker = speaker,
         text = body,
         conversation = self.conversation
     }
+    self.entries[#self.entries + 1] = entry
     self.nextID = self.nextID + 1
 
     if #self.entries > self.limit then
@@ -53,7 +54,7 @@ function History:Observe(snapshot)
 
     self.revision = self.revision + 1
 
-    return true
+    return true, entry
 end
 
 function History:BeginConversation()

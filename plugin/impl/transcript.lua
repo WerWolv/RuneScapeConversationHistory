@@ -34,7 +34,7 @@ function Transcript:BuildRows(width)
     local groups = {}
 
     for _, entry in ipairs(self.history.entries) do
-        if self.conversation == nil or entry.conversation == self.conversation then
+        if entry.id ~= self.hiddenEntry and (self.conversation == nil or entry.conversation == self.conversation) then
             local group = groups[#groups]
 
             if group == nil or group.speaker ~= entry.speaker or group.conversation ~= entry.conversation then
@@ -156,9 +156,15 @@ function Transcript:Render(width)
     end
 end
 
-function Transcript:Update(conversation)
+function Transcript:Update(conversation, hiddenEntry)
     if conversation ~= nil and conversation ~= self.conversation then
         self.conversation, self.revision, self.forceLatest = conversation, nil, true
+    end
+
+    -- Capture immediately, but reveal the line only after it leaves the native dialogue.
+    if hiddenEntry ~= self.hiddenEntry then
+        self.hiddenEntry = hiddenEntry
+        self.revision = nil
     end
 
     local scroll = self.scroll
