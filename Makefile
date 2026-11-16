@@ -10,7 +10,7 @@ BUILD_DIR   := $(BASE_DIR)build
 STAGE_DIR   := $(BUILD_DIR)/package
 
 SOURCE_FILES := $(shell find $(SOURCE_DIR) -type f)
-PACKAGE_DOCS := $(BASE_DIR)USAGE.md
+PACKAGE_DOCS := $(BASE_DIR)README.md $(BASE_DIR)LICENSE.md
 
 ifeq ($(PREVIEW),1)
 	VERSION_FULL := $(VERSION)-WIP
