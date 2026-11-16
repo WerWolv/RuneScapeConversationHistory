@@ -201,13 +201,15 @@ function Dialogue:Capture(logicTick)
             self.history:BeginConversation()
         end
 
-        local _, entry = self.history:Observe(page)
+        local _, entry, repeatedOpening = self.history:Observe(page)
 
         if entry ~= nil then
             self.choices.pending = nil
         end
 
-        self.visibleEntry = entry and entry.id or self.choices.pending and self.choices.pending.id
+        -- A suppressed restart reuses an existing history line; keep it visible.
+        self.visibleEntry = entry and not repeatedOpening and entry.id
+            or self.choices.pending and self.choices.pending.id
     else
         self.visibleEntry = self.choices.pending and self.choices.pending.id
 

@@ -33,12 +33,27 @@ function History:Observe(snapshot)
 
     local key = speaker .. "\0" .. body
 
+    -- Repeated Talk-to clicks can restart the same opening before it advances.
+    -- Reuse that one-line conversation instead of adding another separator.
+    local last, previous = self.entries[#self.entries], self.entries[#self.entries - 1]
+
+    if self.idle and last ~= nil and last.conversation == self.conversation
+        and last.speaker == speaker and last.text == body
+        and (previous == nil or previous.conversation ~= last.conversation) then
+        self.idle = false
+        self.lastKey = key
+        self.repeatedOpening = true
+
+        return false, last, true
+    end
+
     if key == self.lastKey then
-        return false, self.entries[#self.entries]
+        return false, self.entries[#self.entries], self.repeatedOpening
     end
 
     self:BeginConversation()
     self.lastKey = key
+    self.repeatedOpening = nil
     local entry = {
         id = self.nextID,
         speaker = speaker,
