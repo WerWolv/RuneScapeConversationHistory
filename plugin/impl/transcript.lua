@@ -5,6 +5,8 @@ Transcript.__index = Transcript
 
 local bodyFont = id.Font.NOTOSANS_16
 local nameFont = id.Font.NOTOSANS_SEMIBOLD_13
+local nameColour = 0xD8C695FF
+local playerNameColour = 0xAAC5B0FF
 local separatorText = "New conversation"
 
 local function label(parent, font, colour)
@@ -119,6 +121,8 @@ end
 
 function Transcript:Render(width)
     local used, top = 0, self.scroll.scrollY
+    local player = PlayerList and PlayerList.Self()
+    local playerName = text.Plain(player and player.displayName)
 
     for _, entry in ipairs(self.rows) do
         if entry.top >= top + self.scroll.height then
@@ -132,7 +136,7 @@ function Transcript:Render(width)
 
             if row == nil then
                 row = {
-                    speaker = label(self.scroll.content, nameFont, 0xD8C695FF),
+                    speaker = label(self.scroll.content, nameFont, nameColour),
                     body = label(self.scroll.content, bodyFont, 0xEEEEEEFF)
                 }
                 self.pool[used] = row
@@ -143,6 +147,8 @@ function Transcript:Render(width)
             row.speaker:SetPos(12, entry.top + entry.nameTop)
             row.speaker:SetSize(width, entry.nameHeight)
             row.speaker.content = entry.name
+            row.speaker.rgba = (entry.speaker == playerName or entry.speaker == "You")
+                and playerNameColour or nameColour
             row.body:SetPos(12, entry.top + entry.bodyTop)
             row.body:SetSize(width, entry.bodyHeight + 2)
             row.body.content = entry.text
